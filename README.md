@@ -1,6 +1,12 @@
-# rbfnnforforecast
-
+Radial Basis Function NN, Time Series Data
+# import library
 import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from pyrbf import RBF
+import matplotlib.pyplot as plt
+from sklearn.metrics import mean_absolute_error
 
 # Impor data dari file Excel
 from google.colab import drive
@@ -9,40 +15,34 @@ from google.colab import files
 data = pd.read_excel('nama_file_excel.xlsx')
 data = pd.DataFrame(data)
 data
+# Pra-pemrosesan Data: Pisahkan variabel independen (fitur) dan variabel dependen (target), lalu bagi data menjadi set pelatihan dan pengujian
+X = data[['fitur1', 'fitur2', 'fitur3']]
+y = data['target']
 
-#spitdata
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_absolute_percentage_error
-from sklearn.neural_network import MLPRegressor
-from sklearn.preprocessing import StandardScaler
+# Pemrosesan Skala: Skalakan fitur-fitur Anda menggunakan StandardScaler
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
-# Inisialisasi model RBFNN
-rbfnn = MLPRegressor(hidden_layer_sizes=(n_hidden_neurons,), activation='logistic', solver='lbfgs')
+# Membangun Model
+rbf = RBF(hidden_shape=10)  # Jumlah neuron tersembunyi, sesuaikan dengan kebutuhan Anda
+rbf.fit(X_train, y_train)
+y_pred = rbf.predict(X_test)
 
-# Latih model
-rbfnn.fit(X_train, y_train)
+# Evaluasi Model
+def calculate_mape(y_true, y_pred):
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
-# Prediksi
-predictions = rbfnn.predict(X_test)
+mape = calculate_mape(y_test, y_pred)
+print(f'MAPE: {mape:.2f}%')
 
-# Hitung MAPE
-mape = mean_absolute_percentage_error(y_test, predictions)
-print(f'MAPE: {mape}')
-
-import matplotlib.pyplot as plt
-
-# Visualisasi hasil
+# Visualisasi Grafik
 plt.figure(figsize=(10, 6))
-plt.plot(y_test, label='Actual')
-plt.plot(predictions, label='Predicted')
-plt.legend()
-plt.title('Actual vs. Predicted')
-plt.xlabel('Sample Index')
-plt.ylabel('Value')
+plt.scatter(y_test, y_pred, alpha=0.5)
+plt.xlabel('Actual Values')
+plt.ylabel('Predicted Values')
+plt.title('Actual vs. Predicted Values')
 plt.show()
-
-
 
