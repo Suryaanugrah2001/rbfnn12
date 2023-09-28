@@ -1,5 +1,4 @@
 # rbfnnforforecast
-#Neural Network
 
 import pandas as pd
 
